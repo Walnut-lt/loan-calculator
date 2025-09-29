@@ -520,17 +520,18 @@ class LoanCalculator {
     setPartialPaymentDateConstraints(period, originalDate) {
         const originalDateObj = new Date(originalDate);
 
-        // 设置最小日期为今天
+        // 设置最小日期为原定还款日期
         const minDate = originalDateObj.toISOString().split('T')[0];
         this.partialPaymentDateInput.min = minDate;
 
-        // 设置最大日期为原定还款日期 + 1月
+        // 设置最大日期为原定还款日期 + 1月 - 1天
         const maxDateObj = new Date(originalDateObj);
-        maxDateObj.setFullYear(maxDateObj.getMonth() + 1);
+        maxDateObj.setMonth(maxDateObj.getMonth() + 1);
+        maxDateObj.setDate(maxDateObj.getDate() - 1);
         const maxDate = maxDateObj.toISOString().split('T')[0];
         this.partialPaymentDateInput.max = maxDate;
 
-        // 设置默认日期为今天
+        // 设置默认日期为原定还款日期
         this.partialPaymentDateInput.value = minDate;
     }
 
