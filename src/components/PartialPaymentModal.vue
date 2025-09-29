@@ -267,15 +267,15 @@ const disabledDate = (time) => {
     return true
   }
 
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
+  const minData = new Date(props.originalDate)
+  minData.setHours(0, 0, 0, 0)
 
   const selectedDate = new Date(time)
   selectedDate.setHours(0, 0, 0, 0)
 
   // 不能选择今天之前的日期
-  if (selectedDate.getTime() < today.getTime()) {
-    console.log('日期选择器: 日期早于今天', selectedDate, today)
+  if (selectedDate.getTime() < minData.getTime()) {
+    console.log('日期选择器: 日期早于原定还款日期', selectedDate, minData)
     return true
   }
 
@@ -513,7 +513,7 @@ const setDefaultDate = () => {
 
       // 检查原定日期是否有效
       if (!isNaN(originalDate.getTime())) {
-        originalDate.setHours(0, 0, 0, 0)
+        originalDate.setHours(10, 0, 0, 0)
 
         // 设置默认日期为今天，但不能早于今天
         const defaultDate = today.getTime() > originalDate.getTime() ? today : originalDate
