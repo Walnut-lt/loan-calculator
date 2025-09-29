@@ -1,0 +1,250 @@
+/* Vue 3 + Element Plus 样式重写 */
+#app {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 20px;
+}
+
+/* 自定义卡片样式 */
+.loan-form-card {
+  margin-bottom: 20px;
+}
+
+.summary-card {
+  margin-bottom: 20px;
+}
+
+.table-card {
+  margin-bottom: 20px;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.card-header h2,
+.card-header h3 {
+  margin: 0;
+  color: #303133;
+  font-weight: 600;
+}
+
+/* 汇总网格样式 */
+.summary-grid {
+  margin-bottom: 20px;
+}
+
+.summary-item {
+  text-align: center;
+  padding: 16px;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border-radius: 8px;
+  border-left: 4px solid #409eff;
+}
+
+.summary-label {
+  font-size: 14px;
+  color: #606266;
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+.summary-value {
+  font-size: 18px;
+  font-weight: 600;
+  color: #303133;
+}
+
+/* 表格汇总样式 */
+.table-summary {
+  margin-top: 16px;
+  padding: 16px;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  border-radius: 8px;
+}
+
+.summary-total {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+}
+
+.total-label {
+  font-weight: 600;
+  color: #606266;
+  font-size: 16px;
+}
+
+.total-value {
+  font-weight: 700;
+  color: #303133;
+  font-size: 18px;
+}
+
+/* Element Plus 日期选择器样式优化 */
+.el-date-editor {
+  width: 100% !important;
+  display: block !important;
+}
+
+.el-date-editor .el-input__wrapper {
+  box-shadow: 0 0 0 1px var(--el-border-color) inset;
+  transition: box-shadow 0.2s cubic-bezier(0.645, 0.045, 0.355, 1);
+  cursor: pointer;
+}
+
+.el-date-editor .el-input__wrapper:hover {
+  box-shadow: 0 0 0 1px var(--el-color-primary) inset;
+}
+
+.el-date-editor.is-focus .el-input__wrapper {
+  box-shadow: 0 0 0 1px var(--el-color-primary) inset;
+}
+
+/* 确保日期选择器的输入框可以被点击 */
+.el-date-editor .el-input__inner {
+  cursor: pointer;
+  background-color: transparent;
+}
+
+/* 日期选择器图标样式 */
+.el-date-editor .el-input__suffix {
+  color: var(--el-text-color-placeholder);
+  transition: color 0.2s;
+}
+
+.el-date-editor .el-input__suffix:hover {
+  color: var(--el-text-color-regular);
+}
+
+/* 日期选择器弹出面板样式 */
+.el-picker-panel {
+  border: 1px solid var(--el-border-color-light);
+  box-shadow: var(--el-box-shadow-light);
+  border-radius: var(--el-border-radius-base);
+  z-index: 9999 !important;
+  background: white;
+}
+
+.el-picker-panel .el-date-picker__header {
+  border-bottom: 1px solid var(--el-border-color-lighter);
+}
+
+/* 确保日期选择器面板不被遮挡 */
+.el-popper {
+  z-index: 9999 !important;
+}
+
+.el-popper.is-pure {
+  border: 1px solid var(--el-border-color-light);
+}
+
+/* 修复日期选择器的 z-index 问题 */
+.el-picker__popper {
+  z-index: 9999 !important;
+}
+
+/* 表单组件统一间距 */
+.el-form-item {
+  margin-bottom: 22px;
+}
+
+.el-form-item:last-child {
+  margin-bottom: 0;
+}
+
+/* 输入框和选择器统一样式 */
+.el-input-number,
+.el-select,
+.el-date-editor {
+  width: 100%;
+}
+
+.el-input-number .el-input__wrapper,
+.el-select .el-select__wrapper,
+.el-date-editor .el-input__wrapper {
+  border-radius: var(--el-border-radius-base);
+  transition: all 0.2s cubic-bezier(0.645, 0.045, 0.355, 1);
+}
+
+/* 表单验证错误状态样式 */
+.el-form-item.is-error .el-date-editor .el-input__wrapper {
+  box-shadow: 0 0 0 1px var(--el-color-danger) inset;
+}
+
+.el-form-item.is-error .el-date-editor .el-input__suffix {
+  color: var(--el-color-danger);
+}
+
+/* 禁用状态样式 */
+.el-date-editor.is-disabled .el-input__wrapper {
+  background-color: var(--el-fill-color-light);
+  border-color: var(--el-border-color);
+  color: var(--el-text-color-placeholder);
+  cursor: not-allowed;
+}
+
+.el-date-editor.is-disabled .el-input__suffix {
+  color: var(--el-text-color-disabled);
+}
+
+/* 自定义日期面板按钮样式 */
+.el-picker-panel__footer {
+  border-top: 1px solid var(--el-border-color-lighter);
+  padding: 8px 12px;
+}
+
+.el-picker-panel__footer .el-button {
+  font-size: 12px;
+  padding: 5px 15px;
+}
+
+/* 日期单元格悬停效果 */
+.el-date-table td.available:hover {
+  color: var(--el-color-primary);
+}
+
+.el-date-table td.current:not(.disabled) {
+  color: var(--el-color-primary);
+  font-weight: bold;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  #app {
+    padding: 10px;
+  }
+
+  .summary-grid .el-col {
+    margin-bottom: 10px;
+  }
+
+  .summary-item {
+    padding: 12px;
+  }
+
+  .summary-value {
+    font-size: 16px;
+  }
+
+  /* 移动端日期选择器优化 */
+  .el-date-editor {
+    font-size: 14px;
+  }
+
+  .el-picker-panel {
+    margin: 5px;
+    max-width: calc(100vw - 10px);
+  }
+
+  .el-date-table {
+    font-size: 12px;
+  }
+
+  .el-form-item__label {
+    font-size: 14px;
+  }
+}
