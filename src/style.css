@@ -284,3 +284,8 @@
 .button-wrapper .el-button {
     margin: 0 10px;
 }
+
+.no-remarks {
+    color: #909399;
+    font-style: italic;
+}

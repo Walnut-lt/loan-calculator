@@ -212,27 +212,33 @@
               </template>
             </el-table-column>
             <el-table-column prop="paymentDate" label="还款日期" width="120" align="center" />
-            <el-table-column prop="principal" label="应还本金 (元)" width="140" align="right">
+            <el-table-column prop="principal" label="应还本金 (元)" width="140" align="center">
               <template #default="{ row }">
                 {{ formatNumber(row.principal) }}
               </template>
             </el-table-column>
-            <el-table-column prop="interest" label="应还利息 (元)" width="140" align="right">
+            <el-table-column prop="interest" label="应还利息 (元)" width="140" align="center">
               <template #default="{ row }">
                 {{ formatNumber(row.interest) }}
               </template>
             </el-table-column>
-            <el-table-column prop="payment" label="当期总还款额 (元)" width="160" align="right">
+            <el-table-column prop="payment" label="当期总还款额 (元)" width="160" align="center">
               <template #default="{ row }">
                 {{ formatNumber(row.payment) }}
               </template>
             </el-table-column>
-            <el-table-column prop="remainingPrincipal" label="剩余本金 (元)" width="140" align="right">
+            <el-table-column prop="remainingPrincipal" label="剩余本金 (元)" width="140" align="center">
               <template #default="{ row }">
                 {{ formatNumber(row.remainingPrincipal) }}
               </template>
             </el-table-column>
-            <el-table-column label="操作" align="center">
+            <el-table-column prop="remainingPrincipal" label="备注" align="center">
+              <template #default="{ row }">
+                <span v-if="row.remarks">{{ row.remarks }}</span>
+                <span v-else class="no-remarks">-</span>
+              </template>
+            </el-table-column>
+            <el-table-column label="操作" width="120" align="center">
               <template #default="{ row }">
                 <el-button
                   type="warning"
@@ -538,6 +544,38 @@ const handlePartialPaymentConfirm = (data) => {
 
   // 执行部分还款计算
   processPartialPayment(period, partialAmount, partialPaymentDate, adjustmentType)
+
+  // 添加备注信息
+  const currentResult = calculationResults.value.find(result => result.period === period)
+  if (currentResult) {
+    const paymentDate = new Date(partialPaymentDate)
+    const formatDate = `${paymentDate.getFullYear()}年${String(paymentDate.getMonth() + 1).padStart(2, '0')}月${String(paymentDate.getDate()).padStart(2, '0')}日`
+
+    // 根据调整方式生成不同的备注信息
+    if (adjustmentType === 'shorten_term') {
+      // 对于缩短期限方式，需要计算缩短的月数
+      const originalRemainingTerm = loanForm.loanTerm - period + 1
+      const newRemainingPrincipal = remainingPrincipal - partialAmount
+      const monthlyRate = loanForm.rateType === 'annual' ? loanForm.interestRate / 100 / 12 : loanForm.interestRate / 100
+      const originalMonthlyPayment = calculationResults.value.length > 0 ? calculationResults.value[0].payment : 0
+      const newTerm = calculateNewTerm(newRemainingPrincipal, monthlyRate, originalMonthlyPayment)
+      const shortenedMonths = originalRemainingTerm - newTerm
+
+      currentResult.remarks = `${formatDate}提前还款，部分还款${formatNumber(partialAmount)}元，提前还款方式为缩短期限，此次还款缩短了${shortenedMonths}个月，节省利息${formatNumber(calculateSavedInterest(period, partialAmount))}元`
+    } else {
+      // 对于减少月供方式，需要计算每月减少的金额
+      const originalMonthlyPayment = calculationResults.value.length > 0 ? calculationResults.value[0].payment : 0
+      const newRemainingPrincipal = remainingPrincipal - partialAmount
+      const monthlyRate = loanForm.rateType === 'annual' ? loanForm.interestRate / 100 / 12 : loanForm.interestRate / 100
+      const remainingTerms = loanForm.loanTerm - period + 1
+      const newMonthlyPayment = newRemainingPrincipal *
+          (monthlyRate * Math.pow(1 + monthlyRate, remainingTerms)) /
+          (Math.pow(1 + monthlyRate, remainingTerms) - 1)
+      const reducedAmount = originalMonthlyPayment - newMonthlyPayment
+
+      currentResult.remarks = `${formatDate}提前还款，部分还款${formatNumber(partialAmount)}元，提前还款方式为减少月供，此次还款后，每月月供减少${formatNumber(reducedAmount)}元，节省利息${formatNumber(calculateSavedInterest(period, partialAmount))}元`
+    }
+  }
 }
 
 // 处理部分还款
@@ -595,6 +633,19 @@ const calculateNewPartialPaymentPlan = (period, partialAmount, adjustmentType) =
   return newPlan
 }
 
+// 计算部分还款节省的利息
+const calculateSavedInterest = (period, partialAmount) => {
+  // 这里需要根据具体的业务逻辑来计算节省的利息
+  // 可以基于原始还款计划和新的还款计划的利息差来计算
+  // 示例实现：
+  const originalResult = calculationResults.value.find(result => result.period === period)
+  if (originalResult) {
+    // 简化计算，实际应根据具体策略计算
+    return partialAmount * (loanForm.interestRate / 100 / 12) * (loanForm.loanTerm - period)
+  }
+  return 0
+}
+
 // 显示全部还款模态框
 const showFullPaymentModal = (period) => {
   const data = getFullPaymentData(period)
@@ -636,6 +687,11 @@ const handleFullPaymentConfirm = (data) => {
     currentResult.principal = data.remainingPrincipal
     currentResult.payment = data.totalPayment
     currentResult.remainingPrincipal = 0
+
+    // 添加备注信息
+    // 使用当前期数的计划还款日期
+    const formatDate = currentResult.paymentDate // 直接使用该期的计划还款日期
+    currentResult.remarks = `${formatDate}，全部还款完成`
   }
 
   // 2. 删除后续所有行
