@@ -53,7 +53,7 @@
           :loading="simulating"
           :disabled="!canSimulate"
         >
-          <el-icon><Calculator /></el-icon>
+          <el-icon><SetUp /></el-icon>
           模拟还款
         </el-button>
         <span class="simulate-tip">先模拟看看两种策略的收益对比</span>
@@ -184,7 +184,7 @@
 <script setup>
 import { ref, reactive, watch, computed } from 'vue'
 import { ElMessage } from 'element-plus'
-import { Calculator, TrendCharts } from '@element-plus/icons-vue'
+import { SetUp, TrendCharts } from '@element-plus/icons-vue'
 
 // Props
 const props = defineProps({

@@ -1,7 +1,7 @@
 /* Vue 3 + Element Plus 样式重写 */
 #app {
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
   padding: 20px;
 }
 
@@ -29,6 +29,27 @@
   margin: 0;
   color: #303133;
   font-weight: 600;
+}
+
+.loan-form .el-row {
+    margin-bottom: 20px;
+}
+
+.loan-form .el-form-item__label {
+    font-size: 16px;
+}
+
+.loan-form .el-input__inner {
+    font-size: 14px;
+}
+
+.loan-form .el-input-number__decrease,
+.loan-form .el-input-number__increase {
+    font-size: 14px;
+}
+
+.button-wrapper .el-button {
+    font-size: 14px;
 }
 
 /* 汇总网格样式 */
@@ -247,4 +268,19 @@
   .el-form-item__label {
     font-size: 14px;
   }
+}
+
+.button-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 20px;
+}
+
+.button-wrapper {
+    text-align: center;
+}
+
+.button-wrapper .el-button {
+    margin: 0 10px;
 }

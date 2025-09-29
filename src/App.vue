@@ -45,23 +45,16 @@
                 </el-form-item>
               </el-col>
               <el-col :span="12">
-                <el-form-item label="贷款利率" prop="interestRate">
+                <el-form-item label="贷款利率(%)" prop="interestRate">
                   <el-input-number
                     v-model="loanForm.interestRate"
                     :min="0"
                     :step="0.1"
                     :precision="2"
-                    controls-position="right"
-                    style="width: 70%"
+                    controls-position="left"
+                    style="width: 100%"
                     placeholder="请输入利率"
                   />
-                  <el-select
-                    v-model="loanForm.rateType"
-                    style="width: 30%; margin-left: 8px"
-                  >
-                    <el-option label="%" value="annual" />
-                    <el-option label="‰" value="monthly" />
-                  </el-select>
                 </el-form-item>
               </el-col>
             </el-row>
@@ -109,22 +102,23 @@
                   />
                 </el-form-item>
               </el-col>
-              <el-col :span="12">
-                <el-form-item>
-                  <el-button type="primary" @click="calculate" :loading="calculating">
-                    计算
-                  </el-button>
-                  <el-button @click="reset">重置</el-button>
-                  <el-button
+            </el-row>
+
+            <div class="button-container">
+              <div class="button-wrapper">
+                <el-button type="primary" @click="calculate" :loading="calculating">
+                  计算
+                </el-button>
+                <el-button @click="reset">重置</el-button>
+                <el-button
                     type="success"
                     @click="exportCSV"
                     :disabled="!calculationResults.length"
-                  >
-                    导出CSV
-                  </el-button>
-                </el-form-item>
-              </el-col>
-            </el-row>
+                >
+                  导出CSV
+                </el-button>
+              </div>
+            </div>
           </el-form>
         </el-card>
 
@@ -205,12 +199,13 @@
             border
             style="width: 100%"
             :default-sort="{ prop: 'period', order: 'ascending' }"
+            class="full-width-table"
           >
-            <el-table-column prop="period" label="期数" width="80" align="center">
+            <el-table-column prop="period" label="期数" width="120" align="center">
               <template #default="{ row, $index }">
                 <div>
                   {{ row.period }}
-                  <br>
+
                   <el-tag v-if="row.period === 1" size="small" type="success">首期</el-tag>
                   <el-tag v-else-if="$index === calculationResults.length - 1" size="small" type="danger">末期</el-tag>
                 </div>
@@ -237,7 +232,7 @@
                 {{ formatNumber(row.remainingPrincipal) }}
               </template>
             </el-table-column>
-            <el-table-column label="操作" width="200" align="center">
+            <el-table-column label="操作" align="center">
               <template #default="{ row }">
                 <el-button
                   type="warning"
