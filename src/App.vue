@@ -45,16 +45,32 @@
                 </el-form-item>
               </el-col>
               <el-col :span="12">
-                <el-form-item label="贷款利率(%)" prop="interestRate">
-                  <el-input-number
-                    v-model="loanForm.interestRate"
-                    :min="0"
-                    :step="0.1"
-                    :precision="2"
-                    controls-position="left"
-                    style="width: 100%"
-                    placeholder="请输入利率"
-                  />
+                <el-form-item label="贷款利率" prop="interestRate">
+                  <el-row :gutter="8" style="width: 100%;">
+                    <el-col :span="16">
+                      <el-input-number
+                        v-model="loanForm.interestRate"
+                        :min="0"
+                        :step="0.1"
+                        :precision="2"
+                        controls-position="left"
+                        style="width: 100%"
+                        placeholder="请输入利率">
+                        <template #suffix>
+                          <span>%</span>
+                        </template>
+                      </el-input-number>
+                    </el-col>
+                    <el-col :span="8">
+                      <el-select
+                        v-model="loanForm.rateType"
+                        style="width: 100%"
+                      >
+                        <el-option label="年利率" value="annual" />
+                        <el-option label="月利率" value="monthly" />
+                      </el-select>
+                    </el-col>
+                  </el-row>
                 </el-form-item>
               </el-col>
             </el-row>
@@ -110,13 +126,13 @@
                   计算
                 </el-button>
                 <el-button @click="reset">重置</el-button>
-                <el-button
-                    type="success"
-                    @click="exportCSV"
-                    :disabled="!calculationResults.length"
-                >
-                  导出CSV
-                </el-button>
+<!--                <el-button-->
+<!--                    type="success"-->
+<!--                    @click="exportCSV"-->
+<!--                    :disabled="!calculationResults.length"-->
+<!--                >-->
+<!--                  导出CSV-->
+<!--                </el-button>-->
               </div>
             </div>
           </el-form>
@@ -139,14 +155,17 @@
             </el-col>
             <el-col :span="6">
               <div class="summary-item">
-                <div class="summary-label">贷款利率</div>
-                <div class="summary-value">{{ summaryData.interestRate }}%</div>
+                <div class="summary-label"><span style="color: #67c23a;">首期</span>贷款利率</div>
+                <div class="summary-value">{{ summaryData.interestRate }}</div>
               </div>
             </el-col>
             <el-col :span="6">
               <div class="summary-item">
                 <div class="summary-label">贷款期限</div>
-                <div class="summary-value">{{ summaryData.loanTerm }}</div>
+                <div class="summary-value">
+                  <span v-if="typeof summaryData.loanTerm === 'string'" v-html="summaryData.loanTerm"></span>
+                  <span v-else>{{ summaryData.loanTerm }}</span>
+                </div>
               </div>
             </el-col>
             <el-col :span="6">
@@ -161,13 +180,19 @@
             <el-col :span="6">
               <div class="summary-item">
                 <div class="summary-label">总利息</div>
-                <div class="summary-value">{{ formatNumber(summaryData.totalInterest) }} 元</div>
+                <div class="summary-value">
+                  <span v-if="typeof summaryData.totalInterest === 'string'" v-html="summaryData.totalInterest + ' 元'"></span>
+                  <span v-else>{{ formatNumber(summaryData.totalInterest) }} 元</span>
+                </div>
               </div>
             </el-col>
             <el-col :span="6">
               <div class="summary-item">
                 <div class="summary-label">总还款额</div>
-                <div class="summary-value">{{ formatNumber(summaryData.totalPayment) }} 元</div>
+                <div class="summary-value">
+                  <span v-if="typeof summaryData.totalPayment === 'string'" v-html="summaryData.totalPayment + ' 元'"></span>
+                  <span v-else>{{ formatNumber(summaryData.totalPayment) }} 元</span>
+                </div>
               </div>
             </el-col>
             <el-col :span="6">
@@ -244,7 +269,7 @@
                   type="warning"
                   size="small"
                   @click="showPartialPaymentModal(row.period)"
-                  :disabled="loanSettled"
+                  :disabled="loanSettled || paidPayments.length > 0"
                 >
                   部分还款
                 </el-button>
@@ -252,7 +277,7 @@
                   type="danger"
                   size="small"
                   @click="showFullPaymentModal(row.period)"
-                  :disabled="loanSettled"
+                  :disabled="loanSettled || paidPayments.length > 0"
                 >
                   全部还款
                 </el-button>
@@ -292,52 +317,6 @@
               <h3>已还款总计</h3>
             </div>
           </template>
-
-          <el-table
-            :data="paidPayments"
-            stripe
-            border
-            style="width: 100%"
-            :default-sort="{ prop: 'period', order: 'ascending' }"
-            class="full-width-table"
-          >
-            <el-table-column prop="period" label="期数" width="120" align="center">
-              <template #default="{ row, $index }">
-                <div>
-                  {{ row.period }}
-                  <el-tag v-if="row.period === 1" size="small" type="success">首期</el-tag>
-                  <el-tag v-else-if="$index === paidPayments.length - 1" size="small" type="info">已还</el-tag>
-                </div>
-              </template>
-            </el-table-column>
-            <el-table-column prop="paymentDate" label="还款日期" width="120" align="center" />
-            <el-table-column prop="principal" label="已还本金 (元)" width="140" align="center">
-              <template #default="{ row }">
-                {{ formatNumber(row.principal) }}
-              </template>
-            </el-table-column>
-            <el-table-column prop="interest" label="已还利息 (元)" width="140" align="center">
-              <template #default="{ row }">
-                {{ formatNumber(row.interest) }}
-              </template>
-            </el-table-column>
-            <el-table-column prop="payment" label="已还款总额 (元)" width="160" align="center">
-              <template #default="{ row }">
-                {{ formatNumber(row.payment) }}
-              </template>
-            </el-table-column>
-            <el-table-column prop="remainingPrincipal" label="期末剩余本金 (元)" width="140" align="center">
-              <template #default="{ row }">
-                {{ formatNumber(row.remainingPrincipal) }}
-              </template>
-            </el-table-column>
-            <el-table-column prop="remainingPrincipal" label="备注" align="center">
-              <template #default="{ row }">
-                <span v-if="row.remarks">{{ row.remarks }}</span>
-                <span v-else class="no-remarks">-</span>
-              </template>
-            </el-table-column>
-          </el-table>
 
           <!-- 已还款总计行 -->
           <div class="table-summary">
@@ -538,6 +517,9 @@ const formRules = {
   ],
   startDate: [
     { required: true, message: '请选择还款起始日期', trigger: 'change' }
+  ],
+  rateType: [
+    { required: true, message: '请选择利率类型', trigger: 'change' }
   ]
 }
 
@@ -554,12 +536,15 @@ const currentFullPaymentData = ref(null)
 const paidPayments = ref([])
 const newLoanSchedule = ref([])
 
+// 原始贷款数据（用于对比）
+const originalLoanData = ref(null)
+
+// 部分还款的额外金额记录
+const partialPaymentAmounts = ref([])
+
 // 计算汇总数据
 const summaryData = computed(() => {
   if (!calculationResults.value.length) return {}
-
-  const totalPayment = calculationResults.value.reduce((sum, result) => sum + result.payment, 0)
-  const totalInterest = calculationResults.value.reduce((sum, result) => sum + result.interest, 0)
 
   let displayRate = loanForm.interestRate
   if (loanForm.rateType === 'monthly') {
@@ -572,15 +557,51 @@ const summaryData = computed(() => {
     'interest-only': '先息后本'
   }
 
-  return {
-    loanAmount: loanForm.loanAmount,
-    interestRate: displayRate.toFixed(2),
-    loanTerm: loanForm.loanTerm + '个月' + (loanSettled.value ? '（已结清）' : ''),
-    paymentMethod: paymentMethodNames[loanForm.paymentMethod],
-    totalInterest,
-    totalPayment,
-    firstPayment: calculationResults.value[0]?.payment || 0,
-    lastPayment: calculationResults.value[calculationResults.value.length - 1]?.payment || 0
+  // 判断是否有还款操作
+  const hasPaymentOperations = paidPayments.value.length > 0 || loanSettled.value
+
+  if (hasPaymentOperations && originalLoanData.value) {
+    // 计算实际的总利息和总还款额
+    const paidInterest = paidPayments.value.reduce((sum, payment) => sum + payment.interest, 0)
+
+    let remainingInterest = 0
+    let remainingPayment = 0
+    let actualTotalPeriods = paidPayments.value.length
+
+    if (!loanSettled.value && newLoanSchedule.value.length > 0) {
+      // 如果还有新的还款计划
+      remainingInterest = newLoanSchedule.value.reduce((sum, result) => sum + result.interest, 0)
+      actualTotalPeriods += newLoanSchedule.value.length
+    }
+
+    const actualTotalInterest = paidInterest + remainingInterest
+    const actualTotalPayment = loanForm.loanAmount + actualTotalInterest
+
+    return {
+      loanAmount: loanForm.loanAmount,
+      interestRate: `${displayRate.toFixed(2)}%（年利率）`,
+      loanTerm: `${originalLoanData.value.loanTerm}个月 → <span style="color: #67c23a;">${actualTotalPeriods}个月</span>` + (loanSettled.value ? '（已结清）' : ''),
+      paymentMethod: paymentMethodNames[loanForm.paymentMethod],
+      totalInterest: `${formatNumber(originalLoanData.value.totalInterest)} → <span style="color: #67c23a;">${formatNumber(actualTotalInterest)}</span>`,
+      totalPayment: `${formatNumber(originalLoanData.value.totalPayment)} → <span style="color: #67c23a;">${formatNumber(actualTotalPayment)}</span>`,
+      firstPayment: calculationResults.value[0]?.payment || 0,
+      lastPayment: calculationResults.value[calculationResults.value.length - 1]?.payment || 0
+    }
+  } else {
+    // 没有还款操作，显示原始数据
+    const totalPayment = calculationResults.value.reduce((sum, result) => sum + result.payment, 0)
+    const totalInterest = calculationResults.value.reduce((sum, result) => sum + result.interest, 0)
+
+    return {
+      loanAmount: loanForm.loanAmount,
+      interestRate: `${displayRate.toFixed(2)}%（年利率）`,
+      loanTerm: loanForm.loanTerm + '个月',
+      paymentMethod: paymentMethodNames[loanForm.paymentMethod],
+      totalInterest,
+      totalPayment,
+      firstPayment: calculationResults.value[0]?.payment || 0,
+      lastPayment: calculationResults.value[calculationResults.value.length - 1]?.payment || 0
+    }
   }
 })
 
@@ -598,10 +619,18 @@ const totalSummary = computed(() => {
 const paidSummary = computed(() => {
   if (!paidPayments.value.length) return { totalPrincipal: 0, totalInterest: 0, totalPayment: 0 }
 
+  // 计算常规还款的本金、利息、总额
+  const regularPrincipal = paidPayments.value.reduce((sum, payment) => sum + payment.principal, 0)
+  const regularInterest = paidPayments.value.reduce((sum, payment) => sum + payment.interest, 0)
+  const regularPayment = paidPayments.value.reduce((sum, payment) => sum + payment.payment, 0)
+
+  // 计算部分还款的额外金额
+  const partialPaymentTotal = partialPaymentAmounts.value.reduce((sum, partial) => sum + partial.amount, 0)
+
   return {
-    totalPrincipal: paidPayments.value.reduce((sum, payment) => sum + payment.principal, 0),
-    totalInterest: paidPayments.value.reduce((sum, payment) => sum + payment.interest, 0),
-    totalPayment: paidPayments.value.reduce((sum, payment) => sum + payment.payment, 0)
+    totalPrincipal: regularPrincipal + partialPaymentTotal, // 常规本金 + 部分还款金额
+    totalInterest: regularInterest,
+    totalPayment: regularPayment + partialPaymentTotal // 常规总额 + 部分还款金额
   }
 })
 
@@ -676,6 +705,15 @@ const calculate = async () => {
     }
 
     calculationResults.value = results
+
+    // 保存原始贷款数据用于对比
+    originalLoanData.value = {
+      loanTerm: loanTerm,
+      totalInterest: results.reduce((sum, result) => sum + result.interest, 0),
+      totalPayment: results.reduce((sum, result) => sum + result.payment, 0),
+      totalPeriods: results.length
+    }
+
     calculating.value = false
 
     ElMessage.success('计算完成')
@@ -694,6 +732,8 @@ const reset = () => {
   calculationResults.value = []
   paidPayments.value = []
   newLoanSchedule.value = []
+  originalLoanData.value = null
+  partialPaymentAmounts.value = []
   loanSettled.value = false
   setDefaultDate()
 
@@ -748,7 +788,7 @@ const showPartialPaymentModal = (period) => {
 
 // 处理部分还款确认
 const handlePartialPaymentConfirm = (data) => {
-  const { period, partialAmount, partialPaymentDate, adjustmentType, newInterestRate } = data
+  const { period, partialAmount, partialPaymentDate, adjustmentType, newInterestRate, newRateType } = data
 
   // 验证部分还款金额
   let remainingPrincipal
@@ -791,8 +831,15 @@ const handlePartialPaymentConfirm = (data) => {
     paidPayments.value.push(...periodsToMove)
   }
 
+  // 记录部分还款的额外金额
+  partialPaymentAmounts.value.push({
+    period: period,
+    amount: partialAmount,
+    date: partialPaymentDate
+  })
+
   // 执行部分还款计算
-  processPartialPayment(period, partialAmount, partialPaymentDate, adjustmentType, isFromNewSchedule, newInterestRate)
+  processPartialPayment(period, partialAmount, partialPaymentDate, adjustmentType, isFromNewSchedule, newInterestRate, newRateType)
 
   // 添加备注信息
   const paidResult = paidPayments.value[paidPayments.value.length - 1]
@@ -801,7 +848,8 @@ const handlePartialPaymentConfirm = (data) => {
     const formatDate = `${paymentDate.getFullYear()}年${String(paymentDate.getMonth() + 1).padStart(2, '0')}月${String(paymentDate.getDate()).padStart(2, '0')}日`
 
     // 根据调整方式生成不同的备注信息
-    const rateChangeText = newInterestRate !== null ? `，利率调整为${newInterestRate.toFixed(2)}%` : ''
+    const rateChangeText = newInterestRate !== null ?
+      `，利率调整为${newInterestRate.toFixed(2)}%（${newRateType === 'annual' ? '年利率' : '月利率'}）` : ''
 
     if (adjustmentType === 'shorten_term') {
       // 对于缩短期限方式，需要计算缩短的月数
@@ -832,7 +880,7 @@ const handlePartialPaymentConfirm = (data) => {
 }
 
 // 处理部分还款
-const processPartialPayment = (period, partialAmount, partialPaymentDate, adjustmentType, isFromNewSchedule = false, newInterestRate = null) => {
+const processPartialPayment = (period, partialAmount, partialPaymentDate, adjustmentType, isFromNewSchedule = false, newInterestRate = null, newRateType = 'annual') => {
   // 1. 根据来源清理相应的还款计划
   if (isFromNewSchedule) {
     // 如果是从新还款计划操作，清理新还款计划
@@ -843,7 +891,7 @@ const processPartialPayment = (period, partialAmount, partialPaymentDate, adjust
   }
 
   // 2. 计算新的还款计划
-  const newPlan = calculateNewPartialPaymentPlan(period, partialAmount, adjustmentType, isFromNewSchedule, newInterestRate)
+  const newPlan = calculateNewPartialPaymentPlan(period, partialAmount, adjustmentType, isFromNewSchedule, newInterestRate, newRateType)
 
   // 3. 将新计划存储到新还款计划中
   newLoanSchedule.value = newPlan
@@ -852,15 +900,16 @@ const processPartialPayment = (period, partialAmount, partialPaymentDate, adjust
 }
 
 // 计算新的部分还款计划
-const calculateNewPartialPaymentPlan = (period, partialAmount, adjustmentType, isFromNewSchedule = false, newInterestRate = null) => {
+const calculateNewPartialPaymentPlan = (period, partialAmount, adjustmentType, isFromNewSchedule = false, newInterestRate = null, newRateType = 'annual') => {
   const { interestRate, rateType, loanTerm, startDate } = loanForm
 
   // 使用新利率或原利率
   const effectiveInterestRate = newInterestRate !== null ? newInterestRate : interestRate
+  const effectiveRateType = newInterestRate !== null ? newRateType : rateType
 
   // 转换为月利率
   let monthlyRate
-  if (rateType === 'annual') {
+  if (effectiveRateType === 'annual') {
     monthlyRate = effectiveInterestRate / 100 / 12
   } else {
     monthlyRate = effectiveInterestRate / 100

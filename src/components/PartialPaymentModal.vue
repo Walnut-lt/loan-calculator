@@ -47,17 +47,35 @@
       </el-form-item>
 
       <el-form-item label="新贷款利率 (%)" prop="newInterestRate">
-        <el-input-number
-          v-model="form.newInterestRate"
-          :min="0"
-          :max="50"
-          :step="0.1"
-          :precision="2"
-          controls-position="right"
-          style="width: 100%"
-          :placeholder="`当前利率 ${loanParams.interestRate.toFixed(2)}%，可修改`"
-          @change="clearSimulation"
-        />
+        <el-row :gutter="12" style="width: 100%">
+          <el-col :span="16">
+            <el-input-number
+              v-model="form.newInterestRate"
+              :min="0"
+              :max="50"
+              :step="0.1"
+              :precision="2"
+              controls-position="right"
+              style="width: 100%"
+              :placeholder="`当前利率 ${loanParams.interestRate.toFixed(2)}%，可修改`"
+              @change="clearSimulation"
+            >
+              <template #suffix>
+                <span>%</span>
+              </template>
+            </el-input-number>
+          </el-col>
+          <el-col :span="8">
+            <el-select
+              v-model="form.newRateType"
+              style="width: 100%"
+              @change="clearSimulation"
+            >
+              <el-option label="年利率" value="annual" />
+              <el-option label="月利率" value="monthly" />
+            </el-select>
+          </el-col>
+        </el-row>
         <div class="form-tip">
           <el-icon><InfoFilled /></el-icon>
           <span>留空则使用当前利率进行计算。调整利率可模拟利率变化对还款的影响</span>
@@ -83,7 +101,7 @@
       <!-- 利率变化提示 -->
       <el-alert
         v-if="simulationResult.rateChanged"
-        :title="`利率调整：${simulationResult.originalRate.toFixed(2)}% → ${simulationResult.newRate.toFixed(2)}%`"
+        :title="`利率调整：${simulationResult.originalRate.toFixed(2)}%（年利率） → ${simulationResult.newRate.toFixed(2)}%（${simulationResult.newRateType === 'annual' ? '年利率' : '月利率'}）`"
         :description="`利率变化对剩余还款的影响：${simulationResult.rateImpact > 0 ? '节省' : '增加'}利息 ${formatNumber(Math.abs(simulationResult.rateImpact))} 元`"
         :type="simulationResult.rateImpact > 0 ? 'success' : 'warning'"
         show-icon
@@ -263,7 +281,8 @@ const form = reactive({
   partialAmount: null,
   partialPaymentDate: '',
   adjustmentType: 'shorten_term',
-  newInterestRate: null // 新的贷款利率
+  newInterestRate: null, // 新的贷款利率
+  newRateType: 'annual' // 新利率类型，默认年利率
 })
 
 // Form rules
@@ -290,6 +309,9 @@ const formRules = {
   ],
   newInterestRate: [
     { type: 'number', min: 0, max: 50, message: '利率应在0-50%之间', trigger: 'blur' }
+  ],
+  newRateType: [
+    { required: true, message: '请选择利率类型', trigger: 'change' }
   ]
 }
 
@@ -398,7 +420,16 @@ const simulatePayment = async () => {
 
     // 使用新利率或原利率
     const effectiveInterestRate = form.newInterestRate !== null ? form.newInterestRate : props.loanParams.interestRate
-    const monthlyRate = effectiveInterestRate / 100 / 12
+    const effectiveRateType = form.newInterestRate !== null ? form.newRateType : 'annual' // 原始利率默认为年利率
+
+    // 转换为月利率
+    let monthlyRate
+    if (effectiveRateType === 'annual') {
+      monthlyRate = effectiveInterestRate / 100 / 12
+    } else {
+      monthlyRate = effectiveInterestRate / 100
+    }
+
     const originalMonthlyRate = props.loanParams.interestRate / 100 / 12
 
     const originalRemainingTerm = props.loanParams.loanTerm - props.currentPeriod + 1
@@ -454,7 +485,9 @@ const simulatePayment = async () => {
       // 添加利率变化信息
       rateChanged: form.newInterestRate !== null,
       originalRate: props.loanParams.interestRate,
+      originalRateType: 'annual', // 原始利率为年利率
       newRate: effectiveInterestRate,
+      newRateType: effectiveRateType,
       rateImpact: form.newInterestRate !== null ?
         originalRatePayment.totalInterest - originalTotalPayment.totalInterest : 0
     }
@@ -550,6 +583,7 @@ const resetForm = () => {
   form.partialPaymentDate = ''
   form.adjustmentType = 'shorten_term'
   form.newInterestRate = null
+  form.newRateType = 'annual' // 重置为默认年利率
   simulationResult.value = null
 
   if (formRef.value) {
@@ -616,6 +650,7 @@ const handleConfirm = async () => {
       partialPaymentDate: form.partialPaymentDate,
       adjustmentType: form.adjustmentType,
       newInterestRate: form.newInterestRate, // 新利率
+      newRateType: form.newRateType, // 新利率类型
       simulationData: simulationResult.value // 包含模拟数据
     })
 
@@ -662,6 +697,7 @@ watch(() => props.visible, (newVal) => {
 }
 
 .form-tip {
+  width: 100%;
   display: flex;
   align-items: center;
   margin-top: 4px;
@@ -686,6 +722,14 @@ watch(() => props.visible, (newVal) => {
   font-size: 12px;
   color: #909399;
   font-weight: normal;
+}
+
+.rate-section-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #303133;
+  margin-bottom: 12px;
+  padding-left: 4px;
 }
 
 /* 模拟结果区域 */
