@@ -238,7 +238,7 @@
                 <span v-else class="no-remarks">-</span>
               </template>
             </el-table-column>
-            <el-table-column label="操作" width="120" align="center">
+            <el-table-column label="操作" width="220" align="center">
               <template #default="{ row }">
                 <el-button
                   type="warning"
@@ -279,6 +279,184 @@
                 <div class="summary-total">
                   <span class="total-label">总还款:</span>
                   <span class="total-value">{{ formatNumber(totalSummary.totalPayment) }} 元</span>
+                </div>
+              </el-col>
+            </el-row>
+          </div>
+        </el-card>
+
+        <!-- 已还款总计卡片 -->
+        <el-card v-if="paidPayments.length" class="table-card" shadow="hover">
+          <template #header>
+            <div class="card-header">
+              <h3>已还款总计</h3>
+            </div>
+          </template>
+
+          <el-table
+            :data="paidPayments"
+            stripe
+            border
+            style="width: 100%"
+            :default-sort="{ prop: 'period', order: 'ascending' }"
+            class="full-width-table"
+          >
+            <el-table-column prop="period" label="期数" width="120" align="center">
+              <template #default="{ row, $index }">
+                <div>
+                  {{ row.period }}
+                  <el-tag v-if="row.period === 1" size="small" type="success">首期</el-tag>
+                  <el-tag v-else-if="$index === paidPayments.length - 1" size="small" type="info">已还</el-tag>
+                </div>
+              </template>
+            </el-table-column>
+            <el-table-column prop="paymentDate" label="还款日期" width="120" align="center" />
+            <el-table-column prop="principal" label="已还本金 (元)" width="140" align="center">
+              <template #default="{ row }">
+                {{ formatNumber(row.principal) }}
+              </template>
+            </el-table-column>
+            <el-table-column prop="interest" label="已还利息 (元)" width="140" align="center">
+              <template #default="{ row }">
+                {{ formatNumber(row.interest) }}
+              </template>
+            </el-table-column>
+            <el-table-column prop="payment" label="已还款总额 (元)" width="160" align="center">
+              <template #default="{ row }">
+                {{ formatNumber(row.payment) }}
+              </template>
+            </el-table-column>
+            <el-table-column prop="remainingPrincipal" label="期末剩余本金 (元)" width="140" align="center">
+              <template #default="{ row }">
+                {{ formatNumber(row.remainingPrincipal) }}
+              </template>
+            </el-table-column>
+            <el-table-column prop="remainingPrincipal" label="备注" align="center">
+              <template #default="{ row }">
+                <span v-if="row.remarks">{{ row.remarks }}</span>
+                <span v-else class="no-remarks">-</span>
+              </template>
+            </el-table-column>
+          </el-table>
+
+          <!-- 已还款总计行 -->
+          <div class="table-summary">
+            <el-row :gutter="20">
+              <el-col :span="8">
+                <div class="summary-total">
+                  <span class="total-label">已还本金:</span>
+                  <span class="total-value">{{ formatNumber(paidSummary.totalPrincipal) }} 元</span>
+                </div>
+              </el-col>
+              <el-col :span="8">
+                <div class="summary-total">
+                  <span class="total-label">已还利息:</span>
+                  <span class="total-value">{{ formatNumber(paidSummary.totalInterest) }} 元</span>
+                </div>
+              </el-col>
+              <el-col :span="8">
+                <div class="summary-total">
+                  <span class="total-label">已还总额:</span>
+                  <span class="total-value">{{ formatNumber(paidSummary.totalPayment) }} 元</span>
+                </div>
+              </el-col>
+            </el-row>
+          </div>
+        </el-card>
+
+        <!-- 新还款计划表格 -->
+        <el-card v-if="newLoanSchedule.length" class="table-card" shadow="hover">
+          <template #header>
+            <div class="card-header">
+              <h3>调整后还款计划</h3>
+            </div>
+          </template>
+
+          <el-table
+            :data="newLoanSchedule"
+            stripe
+            border
+            style="width: 100%"
+            :default-sort="{ prop: 'period', order: 'ascending' }"
+            class="full-width-table"
+          >
+            <el-table-column prop="period" label="期数" width="120" align="center">
+              <template #default="{ row, $index }">
+                <div>
+                  {{ row.period }}
+                  <el-tag v-if="$index === 0" size="small" type="warning">调整后首期</el-tag>
+                  <el-tag v-else-if="$index === newLoanSchedule.length - 1" size="small" type="danger">末期</el-tag>
+                </div>
+              </template>
+            </el-table-column>
+            <el-table-column prop="paymentDate" label="还款日期" width="120" align="center" />
+            <el-table-column prop="principal" label="应还本金 (元)" width="140" align="center">
+              <template #default="{ row }">
+                {{ formatNumber(row.principal) }}
+              </template>
+            </el-table-column>
+            <el-table-column prop="interest" label="应还利息 (元)" width="140" align="center">
+              <template #default="{ row }">
+                {{ formatNumber(row.interest) }}
+              </template>
+            </el-table-column>
+            <el-table-column prop="payment" label="当期总还款额 (元)" width="160" align="center">
+              <template #default="{ row }">
+                {{ formatNumber(row.payment) }}
+              </template>
+            </el-table-column>
+            <el-table-column prop="remainingPrincipal" label="剩余本金 (元)" width="140" align="center">
+              <template #default="{ row }">
+                {{ formatNumber(row.remainingPrincipal) }}
+              </template>
+            </el-table-column>
+            <el-table-column prop="remainingPrincipal" label="备注" align="center">
+              <template #default="{ row }">
+                <span v-if="row.remarks">{{ row.remarks }}</span>
+                <span v-else class="no-remarks">-</span>
+              </template>
+            </el-table-column>
+            <el-table-column label="操作" width="220" align="center">
+              <template #default="{ row }">
+                <el-button
+                  type="warning"
+                  size="small"
+                  @click="showPartialPaymentModal(row.period)"
+                  :disabled="loanSettled"
+                >
+                  部分还款
+                </el-button>
+                <el-button
+                  type="danger"
+                  size="small"
+                  @click="showFullPaymentModal(row.period)"
+                  :disabled="loanSettled"
+                >
+                  全部还款
+                </el-button>
+              </template>
+            </el-table-column>
+          </el-table>
+
+          <!-- 新还款计划总计行 -->
+          <div class="table-summary">
+            <el-row :gutter="20">
+              <el-col :span="8">
+                <div class="summary-total">
+                  <span class="total-label">剩余本金:</span>
+                  <span class="total-value">{{ formatNumber(newScheduleSummary.totalPrincipal) }} 元</span>
+                </div>
+              </el-col>
+              <el-col :span="8">
+                <div class="summary-total">
+                  <span class="total-label">剩余利息:</span>
+                  <span class="total-value">{{ formatNumber(newScheduleSummary.totalInterest) }} 元</span>
+                </div>
+              </el-col>
+              <el-col :span="8">
+                <div class="summary-total">
+                  <span class="total-label">剩余还款:</span>
+                  <span class="total-value">{{ formatNumber(newScheduleSummary.totalPayment) }} 元</span>
                 </div>
               </el-col>
             </el-row>
@@ -372,6 +550,10 @@ const modalOriginalDate = ref('')
 const modalRemainingPrincipal = ref(0)
 const currentFullPaymentData = ref(null)
 
+// 已还款记录
+const paidPayments = ref([])
+const newLoanSchedule = ref([])
+
 // 计算汇总数据
 const summaryData = computed(() => {
   if (!calculationResults.value.length) return {}
@@ -409,6 +591,28 @@ const totalSummary = computed(() => {
     totalPrincipal: calculationResults.value.reduce((sum, result) => sum + result.principal, 0),
     totalInterest: calculationResults.value.reduce((sum, result) => sum + result.interest, 0),
     totalPayment: calculationResults.value.reduce((sum, result) => sum + result.payment, 0)
+  }
+})
+
+// 已还款总计
+const paidSummary = computed(() => {
+  if (!paidPayments.value.length) return { totalPrincipal: 0, totalInterest: 0, totalPayment: 0 }
+
+  return {
+    totalPrincipal: paidPayments.value.reduce((sum, payment) => sum + payment.principal, 0),
+    totalInterest: paidPayments.value.reduce((sum, payment) => sum + payment.interest, 0),
+    totalPayment: paidPayments.value.reduce((sum, payment) => sum + payment.payment, 0)
+  }
+})
+
+// 新还款计划总计
+const newScheduleSummary = computed(() => {
+  if (!newLoanSchedule.value.length) return { totalPrincipal: 0, totalInterest: 0, totalPayment: 0 }
+
+  return {
+    totalPrincipal: newLoanSchedule.value.reduce((sum, result) => sum + result.principal, 0),
+    totalInterest: newLoanSchedule.value.reduce((sum, result) => sum + result.interest, 0),
+    totalPayment: newLoanSchedule.value.reduce((sum, result) => sum + result.payment, 0)
   }
 })
 
@@ -488,6 +692,8 @@ const reset = () => {
   }
 
   calculationResults.value = []
+  paidPayments.value = []
+  newLoanSchedule.value = []
   loanSettled.value = false
   setDefaultDate()
 
@@ -505,15 +711,31 @@ const showPartialPaymentModal = (period) => {
 
   // 获取期初剩余本金（上一期的剩余本金）
   let remainingPrincipal
-  if (period === 1) {
-    remainingPrincipal = loanForm.loanAmount
+  let currentPeriodResult
+
+  // 检查是否在新还款计划中
+  if (newLoanSchedule.value.length > 0) {
+    if (period === newLoanSchedule.value[0].period) {
+      // 新还款计划的第一期，剩余本金是部分还款后的金额
+      const lastPaidPeriod = paidPayments.value[paidPayments.value.length - 1]
+      remainingPrincipal = lastPaidPeriod ? lastPaidPeriod.remainingPrincipal : loanForm.loanAmount
+    } else {
+      const previousPeriodResult = newLoanSchedule.value.find(result => result.period === period - 1)
+      remainingPrincipal = previousPeriodResult ? previousPeriodResult.remainingPrincipal : 0
+    }
+    currentPeriodResult = newLoanSchedule.value.find(result => result.period === period)
   } else {
-    const previousPeriodResult = calculationResults.value.find(result => result.period === period - 1)
-    remainingPrincipal = previousPeriodResult ? previousPeriodResult.remainingPrincipal : 0
+    // 原始还款计划
+    if (period === 1) {
+      remainingPrincipal = loanForm.loanAmount
+    } else {
+      const previousPeriodResult = calculationResults.value.find(result => result.period === period - 1)
+      remainingPrincipal = previousPeriodResult ? previousPeriodResult.remainingPrincipal : 0
+    }
+    currentPeriodResult = calculationResults.value.find(result => result.period === period)
   }
 
   // 获取当前期的原定还款日期
-  const currentPeriodResult = calculationResults.value.find(result => result.period === period)
   const originalDate = currentPeriodResult ? currentPeriodResult.paymentDate : ''
 
   // 更新模态框信息
@@ -526,15 +748,31 @@ const showPartialPaymentModal = (period) => {
 
 // 处理部分还款确认
 const handlePartialPaymentConfirm = (data) => {
-  const { period, partialAmount, partialPaymentDate, adjustmentType } = data
+  const { period, partialAmount, partialPaymentDate, adjustmentType, newInterestRate } = data
 
   // 验证部分还款金额
   let remainingPrincipal
-  if (period === 1) {
-    remainingPrincipal = loanForm.loanAmount
+  let isFromNewSchedule = false
+
+  // 检查是否在新还款计划中操作
+  if (newLoanSchedule.value.length > 0) {
+    if (period === newLoanSchedule.value[0].period) {
+      // 新还款计划的第一期
+      const lastPaidPeriod = paidPayments.value[paidPayments.value.length - 1]
+      remainingPrincipal = lastPaidPeriod ? lastPaidPeriod.remainingPrincipal : loanForm.loanAmount
+    } else {
+      const previousPeriodResult = newLoanSchedule.value.find(result => result.period === period - 1)
+      remainingPrincipal = previousPeriodResult ? previousPeriodResult.remainingPrincipal : 0
+    }
+    isFromNewSchedule = true
   } else {
-    const previousPeriodResult = calculationResults.value.find(result => result.period === period - 1)
-    remainingPrincipal = previousPeriodResult ? previousPeriodResult.remainingPrincipal : 0
+    // 原始还款计划
+    if (period === 1) {
+      remainingPrincipal = loanForm.loanAmount
+    } else {
+      const previousPeriodResult = calculationResults.value.find(result => result.period === period - 1)
+      remainingPrincipal = previousPeriodResult ? previousPeriodResult.remainingPrincipal : 0
+    }
   }
 
   if (partialAmount >= remainingPrincipal) {
@@ -542,75 +780,111 @@ const handlePartialPaymentConfirm = (data) => {
     return
   }
 
+  // 记录已还款的部分
+  if (isFromNewSchedule) {
+    // 从新还款计划中移动到已还款记录
+    const periodsToMove = newLoanSchedule.value.filter(result => result.period <= period)
+    paidPayments.value.push(...periodsToMove)
+  } else {
+    // 从原始还款计划中移动到已还款记录
+    const periodsToMove = calculationResults.value.filter(result => result.period <= period)
+    paidPayments.value.push(...periodsToMove)
+  }
+
   // 执行部分还款计算
-  processPartialPayment(period, partialAmount, partialPaymentDate, adjustmentType)
+  processPartialPayment(period, partialAmount, partialPaymentDate, adjustmentType, isFromNewSchedule, newInterestRate)
 
   // 添加备注信息
-  const currentResult = calculationResults.value.find(result => result.period === period)
-  if (currentResult) {
+  const paidResult = paidPayments.value[paidPayments.value.length - 1]
+  if (paidResult) {
     const paymentDate = new Date(partialPaymentDate)
     const formatDate = `${paymentDate.getFullYear()}年${String(paymentDate.getMonth() + 1).padStart(2, '0')}月${String(paymentDate.getDate()).padStart(2, '0')}日`
 
     // 根据调整方式生成不同的备注信息
+    const rateChangeText = newInterestRate !== null ? `，利率调整为${newInterestRate.toFixed(2)}%` : ''
+
     if (adjustmentType === 'shorten_term') {
       // 对于缩短期限方式，需要计算缩短的月数
       const originalRemainingTerm = loanForm.loanTerm - period + 1
       const newRemainingPrincipal = remainingPrincipal - partialAmount
-      const monthlyRate = loanForm.rateType === 'annual' ? loanForm.interestRate / 100 / 12 : loanForm.interestRate / 100
+      const effectiveRate = newInterestRate !== null ? newInterestRate : loanForm.interestRate
+      const monthlyRate = loanForm.rateType === 'annual' ? effectiveRate / 100 / 12 : effectiveRate / 100
       const originalMonthlyPayment = calculationResults.value.length > 0 ? calculationResults.value[0].payment : 0
       const newTerm = calculateNewTerm(newRemainingPrincipal, monthlyRate, originalMonthlyPayment)
       const shortenedMonths = originalRemainingTerm - newTerm
 
-      currentResult.remarks = `${formatDate}提前还款，部分还款${formatNumber(partialAmount)}元，提前还款方式为缩短期限，此次还款缩短了${shortenedMonths}个月，节省利息${formatNumber(calculateSavedInterest(period, partialAmount))}元`
+      paidResult.remarks = `${formatDate}提前还款，部分还款${formatNumber(partialAmount)}元${rateChangeText}，提前还款方式为缩短期限，此次还款缩短了${shortenedMonths}个月，节省利息${formatNumber(calculateSavedInterest(period, partialAmount))}元`
     } else {
       // 对于减少月供方式，需要计算每月减少的金额
       const originalMonthlyPayment = calculationResults.value.length > 0 ? calculationResults.value[0].payment : 0
       const newRemainingPrincipal = remainingPrincipal - partialAmount
-      const monthlyRate = loanForm.rateType === 'annual' ? loanForm.interestRate / 100 / 12 : loanForm.interestRate / 100
+      const effectiveRate = newInterestRate !== null ? newInterestRate : loanForm.interestRate
+      const monthlyRate = loanForm.rateType === 'annual' ? effectiveRate / 100 / 12 : effectiveRate / 100
       const remainingTerms = loanForm.loanTerm - period + 1
       const newMonthlyPayment = newRemainingPrincipal *
           (monthlyRate * Math.pow(1 + monthlyRate, remainingTerms)) /
           (Math.pow(1 + monthlyRate, remainingTerms) - 1)
       const reducedAmount = originalMonthlyPayment - newMonthlyPayment
 
-      currentResult.remarks = `${formatDate}提前还款，部分还款${formatNumber(partialAmount)}元，提前还款方式为减少月供，此次还款后，每月月供减少${formatNumber(reducedAmount)}元，节省利息${formatNumber(calculateSavedInterest(period, partialAmount))}元`
+      paidResult.remarks = `${formatDate}提前还款，部分还款${formatNumber(partialAmount)}元${rateChangeText}，提前还款方式为减少月供，此次还款后，每月月供减少${formatNumber(reducedAmount)}元，节省利息${formatNumber(calculateSavedInterest(period, partialAmount))}元`
     }
   }
 }
 
 // 处理部分还款
-const processPartialPayment = (period, partialAmount, partialPaymentDate, adjustmentType) => {
-  // 1. 删除从 period + 1 开始的所有行
-  calculationResults.value = calculationResults.value.filter(result => result.period <= period)
+const processPartialPayment = (period, partialAmount, partialPaymentDate, adjustmentType, isFromNewSchedule = false, newInterestRate = null) => {
+  // 1. 根据来源清理相应的还款计划
+  if (isFromNewSchedule) {
+    // 如果是从新还款计划操作，清理新还款计划
+    newLoanSchedule.value = newLoanSchedule.value.filter(result => result.period <= period)
+  } else {
+    // 如果是从原始还款计划操作，清理原始计划
+    calculationResults.value = calculationResults.value.filter(result => result.period <= period)
+  }
 
   // 2. 计算新的还款计划
-  const newPlan = calculateNewPartialPaymentPlan(period, partialAmount, adjustmentType)
+  const newPlan = calculateNewPartialPaymentPlan(period, partialAmount, adjustmentType, isFromNewSchedule, newInterestRate)
 
-  // 3. 将新计划追加到表格
-  calculationResults.value = [...calculationResults.value.slice(0, period), ...newPlan]
+  // 3. 将新计划存储到新还款计划中
+  newLoanSchedule.value = newPlan
 
   ElMessage.success('部分还款计算完成')
 }
 
 // 计算新的部分还款计划
-const calculateNewPartialPaymentPlan = (period, partialAmount, adjustmentType) => {
+const calculateNewPartialPaymentPlan = (period, partialAmount, adjustmentType, isFromNewSchedule = false, newInterestRate = null) => {
   const { interestRate, rateType, loanTerm, startDate } = loanForm
+
+  // 使用新利率或原利率
+  const effectiveInterestRate = newInterestRate !== null ? newInterestRate : interestRate
 
   // 转换为月利率
   let monthlyRate
   if (rateType === 'annual') {
-    monthlyRate = interestRate / 100 / 12
+    monthlyRate = effectiveInterestRate / 100 / 12
   } else {
-    monthlyRate = interestRate / 100
+    monthlyRate = effectiveInterestRate / 100
   }
 
   // 获取部分还款时的剩余本金
   let remainingPrincipal
-  if (period === 1) {
-    remainingPrincipal = loanForm.loanAmount
+  if (isFromNewSchedule) {
+    // 从新还款计划中获取剩余本金
+    if (period === newLoanSchedule.value[0].period) {
+      const lastPaidPeriod = paidPayments.value[paidPayments.value.length - 1]
+      remainingPrincipal = lastPaidPeriod ? lastPaidPeriod.remainingPrincipal : loanForm.loanAmount
+    } else {
+      const previousResult = newLoanSchedule.value.find(result => result.period === period - 1)
+      remainingPrincipal = previousResult ? previousResult.remainingPrincipal : 0
+    }
   } else {
-    const previousResult = calculationResults.value.find(result => result.period === period - 1)
-    remainingPrincipal = previousResult ? previousResult.remainingPrincipal : 0
+    // 从原始还款计划中获取剩余本金
+    if (period === 1) {
+      remainingPrincipal = loanForm.loanAmount
+    } else {
+      const previousResult = calculationResults.value.find(result => result.period === period - 1)
+      remainingPrincipal = previousResult ? previousResult.remainingPrincipal : 0
+    }
   }
 
   // 计算部分还款后的新剩余本金
@@ -657,15 +931,31 @@ const showFullPaymentModal = (period) => {
 const getFullPaymentData = (period) => {
   // 1. 获取本期开始时的"剩余本金" (即 period - 1 期结束时的值)
   let remainingPrincipal
-  if (period === 1) {
-    remainingPrincipal = loanForm.loanAmount
+  let currentPeriodResult
+
+  // 检查是否在新还款计划中
+  if (newLoanSchedule.value.length > 0) {
+    if (period === newLoanSchedule.value[0].period) {
+      // 新还款计划的第一期
+      const lastPaidPeriod = paidPayments.value[paidPayments.value.length - 1]
+      remainingPrincipal = lastPaidPeriod ? lastPaidPeriod.remainingPrincipal : loanForm.loanAmount
+    } else {
+      const previousPeriodResult = newLoanSchedule.value.find(result => result.period === period - 1)
+      remainingPrincipal = previousPeriodResult ? previousPeriodResult.remainingPrincipal : 0
+    }
+    currentPeriodResult = newLoanSchedule.value.find(result => result.period === period)
   } else {
-    const previousPeriodResult = calculationResults.value.find(result => result.period === period - 1)
-    remainingPrincipal = previousPeriodResult ? previousPeriodResult.remainingPrincipal : 0
+    // 原始还款计划
+    if (period === 1) {
+      remainingPrincipal = loanForm.loanAmount
+    } else {
+      const previousPeriodResult = calculationResults.value.find(result => result.period === period - 1)
+      remainingPrincipal = previousPeriodResult ? previousPeriodResult.remainingPrincipal : 0
+    }
+    currentPeriodResult = calculationResults.value.find(result => result.period === period)
   }
 
   // 2. 获取当前期 (period) 按原计划应还的"利息"
-  const currentPeriodResult = calculationResults.value.find(result => result.period === period)
   const currentInterest = currentPeriodResult ? currentPeriodResult.interest : 0
 
   // 3. 计算全部还款总额
@@ -681,21 +971,47 @@ const getFullPaymentData = (period) => {
 
 // 处理全部还款确认
 const handleFullPaymentConfirm = (data) => {
-  // 1. 修改当前行的数据
-  const currentResult = calculationResults.value.find(result => result.period === data.period)
-  if (currentResult) {
-    currentResult.principal = data.remainingPrincipal
-    currentResult.payment = data.totalPayment
-    currentResult.remainingPrincipal = 0
+  let currentResult
 
-    // 添加备注信息
-    // 使用当前期数的计划还款日期
-    const formatDate = currentResult.paymentDate // 直接使用该期的计划还款日期
-    currentResult.remarks = `${formatDate}，全部还款完成`
+  // 1. 根据来源修改当前行的数据
+  if (newLoanSchedule.value.length > 0) {
+    // 从新还款计划中查找并修改
+    currentResult = newLoanSchedule.value.find(result => result.period === data.period)
+    if (currentResult) {
+      currentResult.principal = data.remainingPrincipal
+      currentResult.payment = data.totalPayment
+      currentResult.remainingPrincipal = 0
+
+      // 添加备注信息
+      const formatDate = currentResult.paymentDate
+      currentResult.remarks = `${formatDate}，全部还款完成`
+
+      // 将该期数据移动到已还款记录
+      paidPayments.value.push(currentResult)
+    }
+
+    // 2. 清空新还款计划
+    newLoanSchedule.value = []
+  } else {
+    // 从原始还款计划中查找并修改
+    currentResult = calculationResults.value.find(result => result.period === data.period)
+    if (currentResult) {
+      currentResult.principal = data.remainingPrincipal
+      currentResult.payment = data.totalPayment
+      currentResult.remainingPrincipal = 0
+
+      // 添加备注信息
+      const formatDate = currentResult.paymentDate
+      currentResult.remarks = `${formatDate}，全部还款完成`
+
+      // 将已完成的期数移动到已还款记录
+      const periodsToMove = calculationResults.value.filter(result => result.period <= data.period)
+      paidPayments.value.push(...periodsToMove)
+    }
+
+    // 2. 删除后续所有行
+    calculationResults.value = calculationResults.value.filter(result => result.period <= data.period)
   }
-
-  // 2. 删除后续所有行
-  calculationResults.value = calculationResults.value.filter(result => result.period <= data.period)
 
   // 3. 显示贷款已结清状态
   loanSettled.value = true

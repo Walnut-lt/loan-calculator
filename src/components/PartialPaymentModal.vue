@@ -46,6 +46,24 @@
         />
       </el-form-item>
 
+      <el-form-item label="新贷款利率 (%)" prop="newInterestRate">
+        <el-input-number
+          v-model="form.newInterestRate"
+          :min="0"
+          :max="50"
+          :step="0.1"
+          :precision="2"
+          controls-position="right"
+          style="width: 100%"
+          :placeholder="`当前利率 ${loanParams.interestRate.toFixed(2)}%，可修改`"
+          @change="clearSimulation"
+        />
+        <div class="form-tip">
+          <el-icon><InfoFilled /></el-icon>
+          <span>留空则使用当前利率进行计算。调整利率可模拟利率变化对还款的影响</span>
+        </div>
+      </el-form-item>
+
       <el-form-item>
         <el-button
           type="info"
@@ -62,9 +80,21 @@
 
     <!-- 模拟结果展示区域 -->
     <div v-if="simulationResult" class="simulation-result">
+      <!-- 利率变化提示 -->
+      <el-alert
+        v-if="simulationResult.rateChanged"
+        :title="`利率调整：${simulationResult.originalRate.toFixed(2)}% → ${simulationResult.newRate.toFixed(2)}%`"
+        :description="`利率变化对剩余还款的影响：${simulationResult.rateImpact > 0 ? '节省' : '增加'}利息 ${formatNumber(Math.abs(simulationResult.rateImpact))} 元`"
+        :type="simulationResult.rateImpact > 0 ? 'success' : 'warning'"
+        show-icon
+        :closable="false"
+        class="rate-change-alert"
+      />
+
       <el-divider>
         <el-icon><TrendCharts /></el-icon>
         还款策略对比分析
+        <span v-if="simulationResult.rateChanged" class="rate-note">（基于新利率 {{ simulationResult.newRate.toFixed(2) }}%）</span>
       </el-divider>
 
       <el-row :gutter="20">
@@ -184,7 +214,7 @@
 <script setup>
 import { ref, reactive, watch, computed } from 'vue'
 import { ElMessage } from 'element-plus'
-import { SetUp, TrendCharts } from '@element-plus/icons-vue'
+import { SetUp, TrendCharts, InfoFilled } from '@element-plus/icons-vue'
 
 // Props
 const props = defineProps({
@@ -232,7 +262,8 @@ const simulationResult = ref(null)
 const form = reactive({
   partialAmount: null,
   partialPaymentDate: '',
-  adjustmentType: 'shorten_term'
+  adjustmentType: 'shorten_term',
+  newInterestRate: null // 新的贷款利率
 })
 
 // Form rules
@@ -256,6 +287,9 @@ const formRules = {
   ],
   adjustmentType: [
     { required: true, message: '请选择调整方式', trigger: 'change' }
+  ],
+  newInterestRate: [
+    { type: 'number', min: 0, max: 50, message: '利率应在0-50%之间', trigger: 'blur' }
   ]
 }
 
@@ -362,11 +396,15 @@ const simulatePayment = async () => {
     // 模拟延时，增加真实感
     await new Promise(resolve => setTimeout(resolve, 800))
 
-    const monthlyRate = props.loanParams.interestRate / 100 / 12
+    // 使用新利率或原利率
+    const effectiveInterestRate = form.newInterestRate !== null ? form.newInterestRate : props.loanParams.interestRate
+    const monthlyRate = effectiveInterestRate / 100 / 12
+    const originalMonthlyRate = props.loanParams.interestRate / 100 / 12
+
     const originalRemainingTerm = props.loanParams.loanTerm - props.currentPeriod + 1
     const newRemainingPrincipal = props.remainingPrincipal - form.partialAmount
 
-    // 计算原始剩余还款情况（不提前还款）
+    // 计算原始剩余还款情况（不提前还款，使用新利率）
     const originalTotalPayment = calculateOriginalRemainingPayment(
       props.remainingPrincipal,
       monthlyRate,
@@ -374,14 +412,22 @@ const simulatePayment = async () => {
       props.loanParams.originalMonthlyPayment
     )
 
-    // 策略一：月供不变，缩短期限
+    // 计算原始利率下的剩余还款情况（用于对比）
+    const originalRatePayment = calculateOriginalRemainingPayment(
+      props.remainingPrincipal,
+      originalMonthlyRate,
+      originalRemainingTerm,
+      props.loanParams.originalMonthlyPayment
+    )
+
+    // 策略一：月供不变，缩短期限（使用新利率）
     const shortenTermResult = calculateShortenTerm(
       newRemainingPrincipal,
       monthlyRate,
       props.loanParams.originalMonthlyPayment
     )
 
-    // 策略二：期限不变，减少月供
+    // 策略二：期限不变，减少月供（使用新利率）
     const reducePaymentResult = calculateReducePayment(
       newRemainingPrincipal,
       monthlyRate,
@@ -394,15 +440,23 @@ const simulatePayment = async () => {
         savedTerm: originalRemainingTerm - shortenTermResult.term,
         monthlyPayment: props.loanParams.originalMonthlyPayment,
         totalInterest: shortenTermResult.totalInterest,
-        savedInterest: originalTotalPayment.totalInterest - shortenTermResult.totalInterest
+        savedInterest: originalTotalPayment.totalInterest - shortenTermResult.totalInterest,
+        newInterestRate: effectiveInterestRate
       },
       reducePayment: {
         remainingTerm: originalRemainingTerm,
         monthlyPayment: reducePaymentResult.monthlyPayment,
         savedMonthly: props.loanParams.originalMonthlyPayment - reducePaymentResult.monthlyPayment,
         totalInterest: reducePaymentResult.totalInterest,
-        savedInterest: originalTotalPayment.totalInterest - reducePaymentResult.totalInterest
-      }
+        savedInterest: originalTotalPayment.totalInterest - reducePaymentResult.totalInterest,
+        newInterestRate: effectiveInterestRate
+      },
+      // 添加利率变化信息
+      rateChanged: form.newInterestRate !== null,
+      originalRate: props.loanParams.interestRate,
+      newRate: effectiveInterestRate,
+      rateImpact: form.newInterestRate !== null ?
+        originalRatePayment.totalInterest - originalTotalPayment.totalInterest : 0
     }
 
     ElMessage.success('模拟计算完成！')
@@ -495,6 +549,7 @@ const resetForm = () => {
   form.partialAmount = null
   form.partialPaymentDate = ''
   form.adjustmentType = 'shorten_term'
+  form.newInterestRate = null
   simulationResult.value = null
 
   if (formRef.value) {
@@ -560,6 +615,7 @@ const handleConfirm = async () => {
       partialAmount: form.partialAmount,
       partialPaymentDate: form.partialPaymentDate,
       adjustmentType: form.adjustmentType,
+      newInterestRate: form.newInterestRate, // 新利率
       simulationData: simulationResult.value // 包含模拟数据
     })
 
@@ -603,6 +659,33 @@ watch(() => props.visible, (newVal) => {
   margin-left: 12px;
   color: #909399;
   font-size: 13px;
+}
+
+.form-tip {
+  display: flex;
+  align-items: center;
+  margin-top: 4px;
+  padding: 8px 12px;
+  background: #f8f9fa;
+  border-radius: 4px;
+  color: #606266;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.form-tip .el-icon {
+  margin-right: 6px;
+  color: #409eff;
+}
+
+.rate-change-alert {
+  margin-bottom: 16px;
+}
+
+.rate-note {
+  font-size: 12px;
+  color: #909399;
+  font-weight: normal;
 }
 
 /* 模拟结果区域 */
